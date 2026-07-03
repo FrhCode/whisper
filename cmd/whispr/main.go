@@ -73,8 +73,6 @@ func onReady() {
 	}
 	d := dictation.New(cfg, st)
 
-	defer cancel()
-
 	go func() {
 		if err := hotkey.Listen(ctx, func() { toggle(ctx, d) }); err != nil {
 			st.Error(err.Error())
