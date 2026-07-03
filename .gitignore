@@ -1,0 +1,26 @@
+# build
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/dist/
+/build/
+
+# local runtime
+config.json
+/tmp/
+/logs/
+history.jsonl
+/graphify-out/
+
+# bundled/local binaries and models
+/bin/
+/models/
+
+# editor/os
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
