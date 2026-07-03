@@ -24,22 +24,32 @@ func New(ffmpeg, mic, out string) *Recorder {
 }
 
 func (r *Recorder) Start(ctx context.Context) error {
-	input := "audio=" + r.mic
-	if r.mic == "" || r.mic == "default" {
-		input = "audio=default"
-	}
 	if b, err := exec.Command(r.ffmpeg, "-version").CombinedOutput(); err != nil {
 		return fmt.Errorf("ffmpeg not runnable: %w: %s", err, b)
 	}
 
-	r.cmd = exec.CommandContext(ctx, r.ffmpeg, "-hide_banner", "-y", "-f", "dshow", "-i", input, "-ac", "1", "-ar", "16000", r.out)
+	args := []string{"-hide_banner", "-y"}
+	if r.mic == "" || r.mic == "default" {
+		args = append(args, "-f", "wasapi", "-i", "default")
+	} else {
+		args = append(args, "-f", "dshow", "-i", "audio="+r.mic)
+	}
+	args = append(args, "-ac", "1", "-ar", "16000", r.out)
+	r.cmd = exec.CommandContext(ctx, r.ffmpeg, args...)
 	r.cmd.Stderr = &r.stderr
 	stdin, err := r.cmd.StdinPipe()
 	if err != nil {
 		return err
 	}
 	r.stdin = stdin
-	return r.cmd.Start()
+	if err := r.cmd.Start(); err != nil {
+		return err
+	}
+	time.Sleep(300 * time.Millisecond)
+	if r.cmd.ProcessState != nil && r.cmd.ProcessState.Exited() {
+		return fmt.Errorf("ffmpeg exited early: %s", r.stderr.String())
+	}
+	return nil
 }
 
 func (r *Recorder) Stop() error {
