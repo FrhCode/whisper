@@ -14,6 +14,7 @@ import (
 	"whispr/internal/config"
 	"whispr/internal/dictation"
 	"whispr/internal/hotkey"
+	"whispr/internal/icon"
 	"whispr/internal/overlay"
 	"whispr/internal/status"
 )
@@ -41,6 +42,7 @@ func runOnce() {
 }
 
 func onReady() {
+	systray.SetIcon(icon.Data())
 	systray.SetTitle("Whispr")
 	systray.SetTooltip("Whispr dictation")
 
@@ -71,7 +73,6 @@ func onReady() {
 	}
 	d := dictation.New(cfg, st)
 
-	ctx, cancel = context.WithCancel(ctx)
 	defer cancel()
 
 	go func() {
