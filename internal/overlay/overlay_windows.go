@@ -4,6 +4,7 @@ package overlay
 
 import (
 	"context"
+	"runtime"
 	"sync"
 	"syscall"
 	"unsafe"
@@ -113,6 +114,9 @@ func (o *Overlay) Set(s string) {
 func (o *Overlay) Hide() { o.Set("") }
 
 func (o *Overlay) run(ctx context.Context) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	hinst, _, _ := getModuleHandle.Call(0)
 	once.Do(func() {
 		wc := wndClassEx{Size: uint32(unsafe.Sizeof(wndClassEx{})), WndProc: syscall.NewCallback(wndProc), Instance: hinst, ClassName: className}

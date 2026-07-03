@@ -5,6 +5,7 @@ package hotkey
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -31,6 +32,9 @@ type msg struct {
 }
 
 func Listen(ctx context.Context, fn func()) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	const id = 1
 	r, _, err := registerHotKey.Call(0, id, modControl|modAlt, vkSpace)
 	if r == 0 {
