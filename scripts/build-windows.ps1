@@ -7,8 +7,10 @@ if (-not (Get-Command go-winres -ErrorAction SilentlyContinue)) {
   go install github.com/tc-hib/go-winres@latest
 }
 go-winres make
+if ($LASTEXITCODE -ne 0) { throw "go-winres failed" }
 
 go build -ldflags="-H windowsgui" -o dist\whispr.exe .\cmd\whispr
+if ($LASTEXITCODE -ne 0) { throw "go build failed" }
 Copy-Item config.example.json dist\config.example.json -Force
 
 Write-Host "Built dist\whispr.exe"

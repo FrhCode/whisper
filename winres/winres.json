@@ -1,6 +1,8 @@
 {
   "RT_GROUP_ICON": {
-    "APP": "assets/whispr.ico"
+    "APP": {
+      "0409": "assets/whispr.ico"
+    }
   },
   "RT_VERSION": {
     "#1": {
