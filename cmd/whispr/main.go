@@ -18,6 +18,7 @@ import (
 	"whispr/internal/icon"
 	"whispr/internal/logs"
 	"whispr/internal/overlay"
+	"whispr/internal/singleinstance"
 	"whispr/internal/status"
 )
 
@@ -30,6 +31,12 @@ func main() {
 	if logFile != nil {
 		defer logFile.Close()
 	}
+	unlock, err := singleinstance.Lock("WhisprDictationApp")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer unlock()
 	if len(os.Args) > 1 && os.Args[1] == "dict" {
 		runOnce()
 		return
