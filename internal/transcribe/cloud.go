@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"whispr/internal/config"
 )
@@ -67,11 +68,12 @@ func Run(ctx context.Context, cfg config.CloudConfig, audio string) (string, err
 	}
 
 	var out response
-	if err := json.Unmarshal(b, &out); err != nil {
-		return "", err
+	if err := json.Unmarshal(b, &out); err == nil && out.Text != "" {
+		return out.Text, nil
 	}
-	if out.Text == "" {
+	text := strings.TrimSpace(string(b))
+	if text == "" {
 		return "", fmt.Errorf("empty transcript response: %s", b)
 	}
-	return out.Text, nil
+	return text, nil
 }

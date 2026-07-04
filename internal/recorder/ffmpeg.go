@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -28,14 +30,16 @@ func (r *Recorder) Start(ctx context.Context) error {
 		return fmt.Errorf("ffmpeg not runnable: %w: %s", err, b)
 	}
 
-	args := []string{"-hide_banner", "-y"}
-	if r.mic == "" || r.mic == "default" {
-		args = append(args, "-f", "wasapi", "-i", "default")
-	} else {
-		args = append(args, "-f", "dshow", "-i", "audio="+r.mic)
+	mic := r.mic
+	if mic == "" || mic == "default" {
+		found, err := DefaultMic(ctx, r.ffmpeg)
+		if err != nil {
+			return err
+		}
+		mic = found
 	}
-	args = append(args, "-ac", "1", "-ar", "16000", r.out)
-	r.cmd = exec.CommandContext(ctx, r.ffmpeg, args...)
+
+	r.cmd = exec.CommandContext(ctx, r.ffmpeg, "-hide_banner", "-y", "-f", "dshow", "-i", "audio="+mic, "-ac", "1", "-ar", "16000", r.out)
 	r.cmd.Stderr = &r.stderr
 	stdin, err := r.cmd.StdinPipe()
 	if err != nil {
@@ -77,6 +81,44 @@ func (r *Recorder) Stop() error {
 		return fmt.Errorf("ffmpeg stop failed: %w: %s", err, r.stderr.String())
 	}
 	return fmt.Errorf("ffmpeg produced no audio: %s", r.stderr.String())
+}
+
+func DefaultMic(ctx context.Context, ffmpeg string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	b, _ := exec.CommandContext(ctx, ffmpeg, "-hide_banner", "-list_devices", "true", "-f", "dshow", "-i", "dummy").CombinedOutput()
+	devices := AudioDevices(string(b))
+	if len(devices) == 0 {
+		return "", fmt.Errorf("no dshow audio devices found; run: ffmpeg -list_devices true -f dshow -i dummy")
+	}
+	return devices[0], nil
+}
+
+func AudioDevices(s string) []string {
+	var out []string
+	inAudio := false
+	re := regexp.MustCompile(`"([^"]+)"`)
+	for _, line := range strings.Split(s, "\n") {
+		if strings.Contains(line, "DirectShow audio devices") {
+			inAudio = true
+			continue
+		}
+		if strings.Contains(line, "DirectShow video devices") {
+			inAudio = false
+			continue
+		}
+		if strings.Contains(line, "Alternative name") {
+			continue
+		}
+		m := re.FindStringSubmatch(line)
+		if len(m) != 2 {
+			continue
+		}
+		if strings.Contains(line, "(audio)") || inAudio {
+			out = append(out, m[1])
+		}
+	}
+	return out
 }
 
 func okWAV(path string) bool {
