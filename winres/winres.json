@@ -1,0 +1,25 @@
+{
+  "RT_GROUP_ICON": {
+    "APP": "assets/whispr.ico"
+  },
+  "RT_VERSION": {
+    "#1": {
+      "0000": {
+        "fixed": {
+          "file_version": "0.1.0.0",
+          "product_version": "0.1.0.0"
+        },
+        "info": {
+          "0409": {
+            "FileDescription": "Whispr Dictation",
+            "FileVersion": "0.1.0",
+            "InternalName": "Whispr",
+            "OriginalFilename": "whispr.exe",
+            "ProductName": "Whispr",
+            "ProductVersion": "0.1.0"
+          }
+        }
+      }
+    }
+  }
+}
