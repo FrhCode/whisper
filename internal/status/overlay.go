@@ -8,6 +8,7 @@ import (
 
 type Overlay struct{ O *overlay.Overlay }
 
+func (s Overlay) Ready()      { s.O.Set("Whispr ready · Ctrl+Space") }
 func (s Overlay) Recording()  { s.O.Set("● Recording") }
 func (s Overlay) Processing() { s.O.Set("Transcribing...") }
 func (s Overlay) Cleaning()   { s.O.Set("Cleaning text...") }

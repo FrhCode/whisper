@@ -95,6 +95,7 @@ func onReady() {
 		mRestore.Uncheck()
 	}
 	d := dictation.New(cfg, st)
+	showStartup(ctx, ov, cfg)
 
 	go func() {
 		if err := hotkey.Listen(ctx, func() { toggle(ctx, d) }); err != nil {
@@ -149,6 +150,25 @@ func setCheck(m checkItem, checked bool) {
 		return
 	}
 	m.Uncheck()
+}
+
+func showStartup(ctx context.Context, ov *overlay.Overlay, cfg config.Config) {
+	msg := "Whispr ready · Ctrl+Space"
+	if cfg.Cloud.APIKey == "" {
+		msg = "Add cloud API key in config.json"
+	} else if cfg.LLM.Enabled && (cfg.LLM.APIKey == "" || cfg.LLM.Model == "") {
+		msg = "Add LLM key/model in config.json"
+	}
+	ov.Set(msg)
+	go func() {
+		select {
+		case <-time.After(1500 * time.Millisecond):
+			if msg == "Whispr ready · Ctrl+Space" {
+				ov.Hide()
+			}
+		case <-ctx.Done():
+		}
+	}()
 }
 
 func toggle(ctx context.Context, d *dictation.Dictation) {
