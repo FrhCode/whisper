@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"whispr/internal/process"
 )
 
 type Recorder struct {
@@ -26,7 +28,9 @@ func New(ffmpeg, mic, out string) *Recorder {
 }
 
 func (r *Recorder) Start(ctx context.Context) error {
-	if b, err := exec.Command(r.ffmpeg, "-version").CombinedOutput(); err != nil {
+	version := exec.Command(r.ffmpeg, "-version")
+	process.HideWindow(version)
+	if b, err := version.CombinedOutput(); err != nil {
 		return fmt.Errorf("ffmpeg not runnable: %w: %s", err, b)
 	}
 
@@ -40,6 +44,7 @@ func (r *Recorder) Start(ctx context.Context) error {
 	}
 
 	r.cmd = exec.CommandContext(ctx, r.ffmpeg, "-hide_banner", "-y", "-f", "dshow", "-i", "audio="+mic, "-ac", "1", "-ar", "16000", r.out)
+	process.HideWindow(r.cmd)
 	r.cmd.Stderr = &r.stderr
 	stdin, err := r.cmd.StdinPipe()
 	if err != nil {
@@ -86,7 +91,9 @@ func (r *Recorder) Stop() error {
 func DefaultMic(ctx context.Context, ffmpeg string) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	b, _ := exec.CommandContext(ctx, ffmpeg, "-hide_banner", "-list_devices", "true", "-f", "dshow", "-i", "dummy").CombinedOutput()
+	cmd := exec.CommandContext(ctx, ffmpeg, "-hide_banner", "-list_devices", "true", "-f", "dshow", "-i", "dummy")
+	process.HideWindow(cmd)
+	b, _ := cmd.CombinedOutput()
 	devices := AudioDevices(string(b))
 	if len(devices) == 0 {
 		return "", fmt.Errorf("no dshow audio devices found; run: ffmpeg -list_devices true -f dshow -i dummy")

@@ -6,6 +6,8 @@ import (
 	"context"
 	"os/exec"
 	"strings"
+
+	"whispr/internal/process"
 )
 
 func Text(ctx context.Context, s string, restore bool) error {
@@ -20,7 +22,9 @@ $ws.SendKeys('^v')
 Start-Sleep -Milliseconds 350
 if (` + boolPS(restore) + `) { Set-Clipboard -Value $old }
 `
-	return exec.CommandContext(ctx, "powershell", "-NoProfile", "-Command", ps).Run()
+	cmd := exec.CommandContext(ctx, "powershell", "-NoProfile", "-WindowStyle", "Hidden", "-Command", ps)
+	process.HideWindow(cmd)
+	return cmd.Run()
 }
 
 func boolPS(v bool) string {
