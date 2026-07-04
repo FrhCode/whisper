@@ -1,0 +1,19 @@
+{
+  "ffmpeg": "ffmpeg",
+  "microphone": "default",
+  "autoPaste": true,
+  "clipboardRestore": true,
+  "cloud": {
+    "url": "https://router.farhandev.my.id/v1/audio/transcriptions",
+    "apiKey": "YOUR_API_KEY",
+    "model": "dg/nova-3",
+    "language": "id"
+  },
+  "llm": {
+    "enabled": true,
+    "url": "https://router.farhandev.my.id/v1/chat/completions",
+    "apiKey": "YOUR_API_KEY",
+    "model": "YOUR_LLM_MODEL",
+    "temperature": 0.1
+  }
+}

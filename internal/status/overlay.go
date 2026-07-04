@@ -10,6 +10,7 @@ type Overlay struct{ O *overlay.Overlay }
 
 func (s Overlay) Recording()  { s.O.Set("● Recording") }
 func (s Overlay) Processing() { s.O.Set("Transcribing...") }
+func (s Overlay) Cleaning()   { s.O.Set("Cleaning text...") }
 func (s Overlay) Pasted() {
 	s.O.Set("✓ Pasted")
 	go func() { time.Sleep(time.Second); s.O.Hide() }()

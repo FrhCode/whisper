@@ -1,66 +1,151 @@
 # Whispr
 
-Windows-only tray dictation prototype.
+Windows tray dictation app.
 
-## Layout
+Press hotkey, speak, press hotkey again. Whispr transcribes Indonesian speech, cleans text with LLM, then pastes into current app.
 
-Place bundled file:
+## Requirements
 
-```text
-bin/ffmpeg.exe
+- Windows
+- Go
+- ffmpeg installed globally
+- Router API key
+
+## Install requirements
+
+Open PowerShell:
+
+```powershell
+winget install GoLang.Go
+winget install Gyan.FFmpeg
 ```
 
-First run creates `config.json`.
+Close PowerShell, open again, check:
+
+```powershell
+go version
+ffmpeg -version
+```
+
+## Build
+
+From project root:
+
+```powershell
+.\scripts\build-windows.ps1
+```
+
+Output:
+
+```text
+dist\whispr.exe
+dist\config.example.json
+```
+
+## Configure
+
+```powershell
+cd dist
+copy config.example.json config.json
+notepad config.json
+```
+
+Fill:
+
+```text
+cloud.apiKey
+llm.apiKey
+llm.model
+```
+
+Example:
+
+```json
+{
+  "ffmpeg": "ffmpeg",
+  "microphone": "default",
+  "autoPaste": true,
+  "clipboardRestore": true,
+  "cloud": {
+    "url": "https://router.farhandev.my.id/v1/audio/transcriptions",
+    "apiKey": "YOUR_API_KEY",
+    "model": "dg/nova-3",
+    "language": "id"
+  },
+  "llm": {
+    "enabled": true,
+    "url": "https://router.farhandev.my.id/v1/chat/completions",
+    "apiKey": "YOUR_API_KEY",
+    "model": "YOUR_LLM_MODEL",
+    "temperature": 0.1
+  }
+}
+```
 
 ## Run
 
 ```powershell
-go mod tidy
-go run ./cmd/whispr
+.\whispr.exe
 ```
 
-First run creates `config.json`. Put API key in:
+Or double-click:
 
-```json
-"cloud": {
-  "url": "https://router.farhandev.my.id/v1/audio/transcriptions",
-  "apiKey": "xxxxxxxxxxxxxxxxxxxxxxx",
-  "model": "dg/nova-3",
-  "language": "id"
-},
-"llm": {
-  "enabled": true,
-  "url": "https://router.farhandev.my.id/v1/chat/completions",
-  "apiKey": "xxxxxxxxxxxxxxxxxxxxxxx",
-  "model": "YOUR_LLM_MODEL",
-  "temperature": 0.1
-}
+```text
+dist\whispr.exe
 ```
 
-Tray starts. Press `Ctrl+Alt+Space` to start recording, press again to stop, upload, transcribe, paste.
+Keep these together if moving app:
 
-CLI fallback:
+```text
+Whispr/
+  whispr.exe
+  config.json
+```
 
-```powershell
-go run ./cmd/whispr dict
+Whispr reads `config.json` next to `whispr.exe`.
+
+## Use
+
+```text
+Ctrl+Alt+Space  start recording
+Ctrl+Alt+Space  stop recording
+```
+
+Flow:
+
+```text
+Recording
+Transcribing...
+Cleaning text...
+Pasted
 ```
 
 ## Microphone
 
-`config.json` default uses:
+Default config:
 
 ```json
 "microphone": "default"
 ```
 
-If ffmpeg cannot open default mic, list devices:
+Whispr auto-detects first DirectShow audio device.
+
+If wrong mic, list devices:
 
 ```powershell
-bin/ffmpeg.exe -list_devices true -f dshow -i dummy
+ffmpeg -hide_banner -list_devices true -f dshow -i dummy
 ```
 
-Copy exact audio device name into `config.json`, for example:
+Copy exact audio device name:
 
 ```json
-"microphone": "Microphone Array"
+"microphone": "Microphone Array (AMD Audio Device)"
+```
+
+## Quit
+
+Right-click tray icon:
+
+```text
+Quit
 ```

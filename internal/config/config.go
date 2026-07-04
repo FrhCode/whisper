@@ -32,7 +32,7 @@ type LLMConfig struct {
 
 func Default() Config {
 	return Config{
-		FFmpeg:           "bin/ffmpeg.exe",
+		FFmpeg:           "ffmpeg",
 		Microphone:       "default",
 		AutoPaste:        true,
 		ClipboardRestore: true,

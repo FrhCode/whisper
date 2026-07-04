@@ -12,6 +12,11 @@ func (m Multi) Processing() {
 		s.Processing()
 	}
 }
+func (m Multi) Cleaning() {
+	for _, s := range m {
+		s.Cleaning()
+	}
+}
 func (m Multi) Pasted() {
 	for _, s := range m {
 		s.Pasted()

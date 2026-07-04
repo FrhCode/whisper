@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/getlantern/systray"
@@ -20,12 +21,25 @@ import (
 )
 
 func main() {
+	useExeDir()
 	if len(os.Args) > 1 && os.Args[1] == "dict" {
 		runOnce()
 		return
 	}
 
 	systray.Run(onReady, func() {})
+}
+
+func useExeDir() {
+	exe, err := os.Executable()
+	if err != nil {
+		return
+	}
+	dir := filepath.Dir(exe)
+	if strings.Contains(dir, "go-build") {
+		return
+	}
+	_ = os.Chdir(dir)
 }
 
 func runOnce() {

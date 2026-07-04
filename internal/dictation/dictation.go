@@ -82,6 +82,9 @@ func (d *Dictation) Stop(ctx context.Context) (string, error) {
 	if text == "" {
 		return "", fmt.Errorf("empty transcript")
 	}
+	if d.cfg.LLM.Enabled {
+		d.st.Cleaning()
+	}
 	cleaned, err := cleanup.Run(ctx, d.cfg.LLM, text)
 	if err != nil {
 		d.st.Error(err.Error())
