@@ -52,9 +52,10 @@ func tile(x, y, w, h int) (byte, byte, byte, byte) {
 		return 0, 0, 0, 0
 	}
 	t := float64(x+y) / float64(w+h-2)
-	r := byte(0x60*t + 0x00*(1-t))
-	g := byte(0xcd*t + 0x78*(1-t))
-	bb := byte(0xff*t + 0xd4*(1-t))
+	// icon #01 from design board: Windows 11 cyan rounded mic tile.
+	r := byte(0x7a*t + 0x5d*(1-t))
+	g := byte(0xd8*t + 0xc9*(1-t))
+	bb := byte(0xff*t + 0xff*(1-t))
 	return bb, g, r, 255
 }
 
