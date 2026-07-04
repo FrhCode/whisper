@@ -4,34 +4,56 @@ package singleinstance
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"syscall"
 	"unsafe"
 )
 
-var (
-	kernel32     = syscall.NewLazyDLL("kernel32.dll")
-	createMutexW = kernel32.NewProc("CreateMutexW")
-	closeHandle  = kernel32.NewProc("CloseHandle")
-	getLastError = kernel32.NewProc("GetLastError")
-	mutexHandle  uintptr
+var kernel32 = syscall.NewLazyDLL("kernel32.dll")
+var createFileW = kernel32.NewProc("CreateFileW")
+var closeHandle = kernel32.NewProc("CloseHandle")
+
+const (
+	genericRead           = 0x80000000
+	genericWrite          = 0x40000000
+	openAlways            = 4
+	fileAttributeNormal   = 0x80
+	errorSharingViolation = 32
+	errorLockViolation    = 33
 )
 
-const errorAlreadyExists = 183
+var lockHandle uintptr
 
 func Lock(name string) (func(), error) {
-	p, err := syscall.UTF16PtrFromString("Global\\" + name)
+	dir, err := os.UserConfigDir()
 	if err != nil {
 		return nil, err
 	}
-	h, _, callErr := createMutexW.Call(0, 1, uintptr(unsafe.Pointer(p)))
-	if h == 0 {
-		return nil, fmt.Errorf("create mutex failed: %w", callErr)
+	dir = filepath.Join(dir, name)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, err
 	}
-	last, _, _ := getLastError.Call()
-	if last == errorAlreadyExists {
-		closeHandle.Call(h)
-		return nil, fmt.Errorf("Whispr already running")
+	path := filepath.Join(dir, "instance.lock")
+	p, err := syscall.UTF16PtrFromString(path)
+	if err != nil {
+		return nil, err
 	}
-	mutexHandle = h
-	return func() { closeHandle.Call(mutexHandle) }, nil
+	h, _, callErr := createFileW.Call(
+		uintptr(unsafe.Pointer(p)),
+		genericRead|genericWrite,
+		0,
+		0,
+		openAlways,
+		fileAttributeNormal,
+		0,
+	)
+	if h == uintptr(syscall.InvalidHandle) {
+		if errno, ok := callErr.(syscall.Errno); ok && (errno == errorSharingViolation || errno == errorLockViolation) {
+			return nil, fmt.Errorf("Whispr already running")
+		}
+		return nil, fmt.Errorf("single instance lock failed: %w", callErr)
+	}
+	lockHandle = h
+	return func() { closeHandle.Call(lockHandle) }, nil
 }
