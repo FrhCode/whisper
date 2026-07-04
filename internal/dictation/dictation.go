@@ -10,6 +10,7 @@ import (
 	"whispr/internal/beep"
 	"whispr/internal/cleanup"
 	"whispr/internal/config"
+	"whispr/internal/history"
 	"whispr/internal/paste"
 	"whispr/internal/recorder"
 	"whispr/internal/status"
@@ -85,12 +86,17 @@ func (d *Dictation) Stop(ctx context.Context) (string, error) {
 	if d.cfg.LLM.Enabled {
 		d.st.Cleaning()
 	}
+	raw := text
 	cleaned, err := cleanup.Run(ctx, d.cfg.LLM, text)
 	if err != nil {
 		d.st.Error(err.Error())
 		beep.Error()
 	} else {
 		text = cleaned
+	}
+	if err := history.Append("history.jsonl", raw, text); err != nil {
+		d.st.Error(err.Error())
+		beep.Error()
 	}
 	if text == "" {
 		return "", nil

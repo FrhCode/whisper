@@ -16,12 +16,20 @@ import (
 	"whispr/internal/dictation"
 	"whispr/internal/hotkey"
 	"whispr/internal/icon"
+	"whispr/internal/logs"
 	"whispr/internal/overlay"
 	"whispr/internal/status"
 )
 
 func main() {
 	useExeDir()
+	logFile, err := logs.Init("logs")
+	if err != nil {
+		log.Println(err)
+	}
+	if logFile != nil {
+		defer logFile.Close()
+	}
 	if len(os.Args) > 1 && os.Args[1] == "dict" {
 		runOnce()
 		return
@@ -63,9 +71,10 @@ func onReady() {
 	mStart := systray.AddMenuItem("Start Dictation", "Start/stop dictation")
 	mMic := systray.AddMenuItem("Microphone", "Edit microphone in config.json")
 	mModel := systray.AddMenuItem("Model", "Edit model in config.json")
-	mHotkey := systray.AddMenuItem("Hotkey: Ctrl+Alt+Space", "Fixed for now")
+	mHotkey := systray.AddMenuItem("Hotkey: Ctrl+Space", "Fixed for now")
 	mAutoPaste := systray.AddMenuItemCheckbox("Auto Paste", "Toggle auto paste", true)
 	mRestore := systray.AddMenuItemCheckbox("Clipboard Restore", "Restore clipboard after paste", true)
+	mHistory := systray.AddMenuItem("Open History", "Open transcript history")
 	mLogs := systray.AddMenuItem("Open Logs", "Open logs folder")
 	systray.AddSeparator()
 	mQuit := systray.AddMenuItem("Quit", "Quit")
@@ -103,7 +112,7 @@ func onReady() {
 			case <-mModel.ClickedCh:
 				_ = openPath("config.json")
 			case <-mHotkey.ClickedCh:
-				st.Error("Hotkey fixed: Ctrl+Alt+Space")
+				st.Error("Hotkey fixed: Ctrl+Space")
 			case <-mAutoPaste.ClickedCh:
 				cfg.AutoPaste = !cfg.AutoPaste
 				setCheck(mAutoPaste, cfg.AutoPaste)
@@ -114,6 +123,9 @@ func onReady() {
 				setCheck(mRestore, cfg.ClipboardRestore)
 				_ = config.Save("config.json", cfg)
 				d.SetConfig(cfg)
+			case <-mHistory.ClickedCh:
+				ensureFile("history.jsonl")
+				_ = execCommand("notepad", "history.jsonl")
 			case <-mLogs.ClickedCh:
 				_ = os.MkdirAll("logs", 0755)
 				_ = openPath(filepath.Join(".", "logs"))
@@ -146,6 +158,13 @@ func toggle(ctx context.Context, d *dictation.Dictation) {
 	}
 	if err := d.Start(ctx); err != nil {
 		log.Println(err)
+	}
+}
+
+func ensureFile(path string) {
+	f, err := os.OpenFile(path, os.O_CREATE, 0644)
+	if err == nil {
+		_ = f.Close()
 	}
 }
 

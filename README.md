@@ -107,8 +107,8 @@ Whispr reads `config.json` next to `whispr.exe`.
 ## Use
 
 ```text
-Ctrl+Alt+Space  start recording
-Ctrl+Alt+Space  stop recording
+Ctrl+Space  start recording
+Ctrl+Space  stop recording
 ```
 
 Flow:
@@ -141,6 +141,42 @@ Copy exact audio device name:
 ```json
 "microphone": "Microphone Array (AMD Audio Device)"
 ```
+
+## History
+
+Right-click tray icon:
+
+```text
+Open History
+```
+
+History file:
+
+```text
+history.jsonl
+```
+
+Each line stores raw transcript and cleaned text:
+
+```json
+{"time":"2026-07-04T07:00:00+07:00","raw":"...","cleaned":"..."}
+```
+
+## Logs
+
+Right-click tray icon:
+
+```text
+Open Logs
+```
+
+Log file:
+
+```text
+logs/whispr.log
+```
+
+Logs include status/errors, not API keys.
 
 ## Quit
 
