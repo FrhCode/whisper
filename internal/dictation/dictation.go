@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"whispr/internal/beep"
+	"whispr/internal/cleanup"
 	"whispr/internal/config"
 	"whispr/internal/paste"
 	"whispr/internal/recorder"
@@ -80,6 +81,16 @@ func (d *Dictation) Stop(ctx context.Context) (string, error) {
 	}
 	if text == "" {
 		return "", fmt.Errorf("empty transcript")
+	}
+	cleaned, err := cleanup.Run(ctx, d.cfg.LLM, text)
+	if err != nil {
+		d.st.Error(err.Error())
+		beep.Error()
+	} else {
+		text = cleaned
+	}
+	if text == "" {
+		return "", nil
 	}
 	if d.cfg.AutoPaste {
 		if err := paste.Text(ctx, text, d.cfg.ClipboardRestore); err != nil {

@@ -27,6 +27,13 @@ First run creates `config.json`. Put API key in:
   "apiKey": "xxxxxxxxxxxxxxxxxxxxxxx",
   "model": "dg/nova-3",
   "language": "id"
+},
+"llm": {
+  "enabled": true,
+  "url": "https://router.farhandev.my.id/v1/chat/completions",
+  "apiKey": "xxxxxxxxxxxxxxxxxxxxxxx",
+  "model": "YOUR_LLM_MODEL",
+  "temperature": 0.1
 }
 ```
 
