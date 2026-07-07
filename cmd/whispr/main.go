@@ -79,7 +79,7 @@ func onReady() {
 	mStart := systray.AddMenuItem("Start Dictation", "Start/stop dictation")
 	mMic := systray.AddMenuItem("Microphone", "Edit microphone in config.json")
 	mModel := systray.AddMenuItem("Model", "Edit model in config.json")
-	mHotkey := systray.AddMenuItem("Hotkey: Ctrl+Win+Space", "Fixed for now")
+	mHotkey := systray.AddMenuItem("Hotkey: Ctrl+Alt+Space", "Fixed for now")
 	mAutoPaste := systray.AddMenuItemCheckbox("Auto Paste", "Toggle auto paste", true)
 	mRestore := systray.AddMenuItemCheckbox("Clipboard Restore", "Restore clipboard after paste", true)
 	mHistory := systray.AddMenuItem("Open History", "Open transcript history")
@@ -121,7 +121,7 @@ func onReady() {
 			case <-mModel.ClickedCh:
 				_ = openPath("config.json")
 			case <-mHotkey.ClickedCh:
-				st.Error("Hotkey fixed: Ctrl+Win+Space")
+				st.Error("Hotkey fixed: Ctrl+Alt+Space")
 			case <-mAutoPaste.ClickedCh:
 				cfg.AutoPaste = !cfg.AutoPaste
 				setCheck(mAutoPaste, cfg.AutoPaste)
@@ -161,7 +161,7 @@ func setCheck(m checkItem, checked bool) {
 }
 
 func showStartup(ctx context.Context, ov *overlay.Overlay, cfg config.Config) {
-	msg := "Whispr ready · Ctrl+Win+Space"
+	msg := "Whispr ready · Ctrl+Alt+Space"
 	if cfg.Cloud.APIKey == "" {
 		msg = "Add cloud API key in config.json"
 	} else if cfg.LLM.Enabled && (cfg.LLM.APIKey == "" || cfg.LLM.Model == "") {
@@ -171,7 +171,7 @@ func showStartup(ctx context.Context, ov *overlay.Overlay, cfg config.Config) {
 	go func() {
 		select {
 		case <-time.After(1500 * time.Millisecond):
-			if msg == "Whispr ready · Ctrl+Win+Space" {
+			if msg == "Whispr ready · Ctrl+Alt+Space" {
 				ov.Hide()
 			}
 		case <-ctx.Done():
