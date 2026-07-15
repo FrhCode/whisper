@@ -15,6 +15,7 @@ import (
 
 	"whispr/internal/config"
 	"whispr/internal/dictation"
+	"whispr/internal/historyui"
 	"whispr/internal/hotkey"
 	"whispr/internal/icon"
 	"whispr/internal/logs"
@@ -133,8 +134,9 @@ func onReady() {
 				_ = config.Save("config.json", cfg)
 				d.SetConfig(cfg)
 			case <-mHistory.ClickedCh:
-				ensureFile("history.jsonl")
-				_ = execCommand("notepad", "history.jsonl")
+				if err := historyui.Open("history.jsonl"); err != nil {
+					st.Error(err.Error())
+				}
 			case <-mLogs.ClickedCh:
 				_ = os.MkdirAll("logs", 0755)
 				_ = openPath(filepath.Join(".", "logs"))
